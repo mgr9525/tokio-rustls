@@ -66,6 +66,7 @@ pub mod client;
 mod common;
 use common::{MidHandshake, TlsState};
 pub mod server;
+pub mod ruis;
 
 /// A wrapper around a `rustls::ClientConfig`, providing an async `connect` method.
 #[derive(Clone)]
