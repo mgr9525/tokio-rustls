@@ -31,6 +31,10 @@ impl<'a, IO: AsyncRead + AsyncWrite + Unpin> Acceptor<'a, IO> {
             acceptor: &mut self.acceptor,
         }
     }
+    /* pub async fn accepts(&mut self) -> std::io::Result<rustls::server::Accepted> {
+        self.read_tls().await?;
+        self.accept().await
+    } */
     pub fn from_srvconn(conn: ServerConnection, stream: IO) -> crate::Accept<IO> {
         crate::Accept(MidHandshake::Handshaking(crate::server::TlsStream {
             session: conn,
@@ -57,12 +61,11 @@ pub struct Accepted<'a> {
 }
 
 impl<'a> Future for Accepted<'a> {
-    type Output = std::io::Result<rustls::server::Accepted>;
+    type Output = std::io::Result<Option<rustls::server::Accepted>>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         match self.acceptor.accept() {
-            Ok(Some(accepted)) => Poll::Ready(Ok(accepted)),
-            Ok(None) => Poll::Pending,
+            Ok(v) => Poll::Ready(Ok(v)),
             Err((err, alert)) => Poll::Ready(Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 format!("accepted err{}", err),
